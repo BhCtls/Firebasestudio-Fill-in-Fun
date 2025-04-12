@@ -111,8 +111,14 @@ const changeTenseFlow = ai.defineFlow<
   outputSchema: ChangeTenseOutputSchema,
 },
 async input => {
-  const {output} = await prompt_changetense(input);
-  return output!;
+    try {
+        const {output} = await prompt_changetense(input);
+        return output!;
+    } catch (error: any) {
+        console.error("Error in changeTenseFlow:", error);
+        // Return a default value or re-throw the error, depending on your needs
+        return { changedWord: '' }; // Returning an empty string as default
+    }
 });
 
 export async function changeTense(input: ChangeTenseInput): Promise<ChangeTenseOutput> {
