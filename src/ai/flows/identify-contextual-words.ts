@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
         .describe('The words with high contextual value in the sentence.'),
     }),
   },
-  prompt: `You are an AI expert in linguistics.
+  prompt: `You are an AI English teacher and linguistic.To make your Chinese students master the transformation of verbs and adjectives
 Your task is to identify words with high contextual value in a given sentence.
 These words are verbs and adjectives.Avoid Nouns.
 Return a list of these words.
@@ -78,8 +78,8 @@ const prompt_changetense = ai.definePrompt({
     }),
   },
   prompt: `You are an AI expert in linguistics.
-Your task is to change the tense of the given word to the target tense, with the context sentence provided.
-Make sure the changed tense word is suitable for the context sentence.
+Your task is to change the tense(for verb) or form(for adjectives or adverbs) of the given word to the target tense or form, with the context sentence provided.
+When you get a verb like "to be done",you can output a "do".Also you can convert an adjective such as "collective" to "collect" or "collection".
 Just output the changed tense word, nothing else.
 
 Word: {{{word}}}
