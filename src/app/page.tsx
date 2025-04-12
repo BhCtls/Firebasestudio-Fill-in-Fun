@@ -241,15 +241,13 @@ export default function Home() {
                 <Label htmlFor="model" className="text-right">
                   Model
                 </Label>
-                <Select onValueChange={setModel} defaultValue={model} id="model" className="col-span-3">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Model"/>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gpt-3.5-turbo">GPT 3.5 Turbo</SelectItem>
-                    <SelectItem value="gpt-4">GPT 4</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  type="text"
+                  id="model"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  className="col-span-3"
+                />
               </div>
             )}
             <div className="grid grid-cols-4 items-center gap-4">
@@ -333,4 +331,5 @@ export default function Home() {
     </div>
   );
 }
+
 
