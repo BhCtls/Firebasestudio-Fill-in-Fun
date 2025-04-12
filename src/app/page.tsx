@@ -10,6 +10,9 @@ import {Input} from "@/components/ui/input";
 import {Icons} from "@/components/icons";
 import {cn} from "@/lib/utils";
 import {Progress} from "@/components/ui/progress";
+import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger} from "@/components/ui/alert-dialog";
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
+import {Label} from "@/components/ui/label";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 const PlaceholderShape = "______";
@@ -29,6 +32,7 @@ export default function Home() {
   const [aiSupplier, setAiSupplier] = useState("google");
   const [apiKey, setApiKey] = useState("");
   const [apiEndpoint, setApiEndpoint] = useState("");
+  const [open, setOpen] = useState(false);
 
   const generateQuestions = async () => {
     if (!inputText) return;
@@ -169,18 +173,24 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-3xl p-4 md:p-6 space-y-4 bg-card shadow-md rounded-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold tracking-tight">AI Supplier Configuration</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">
-            Configure the AI supplier and credentials.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Select onValueChange={setAiSupplier} defaultValue={aiSupplier}>
-                <SelectTrigger className="w-full">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline">Modify Config</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>AI Supplier Configuration</DialogTitle>
+            <DialogDescription>
+              Configure the AI supplier and credentials.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="aiSupplier" className="text-right">
+                AI Supplier
+              </Label>
+              <Select onValueChange={setAiSupplier} defaultValue={aiSupplier} id="aiSupplier" className="col-span-3">
+                <SelectTrigger>
                   <SelectValue placeholder="Select AI Supplier"/>
                 </SelectTrigger>
                 <SelectContent>
@@ -189,29 +199,53 @@ export default function Home() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="apiEndpoint" className="text-right">
+                API Endpoint
+              </Label>
               <Input
                 type="text"
-                placeholder="API Endpoint"
+                id="apiEndpoint"
                 value={apiEndpoint}
                 onChange={(e) => setApiEndpoint(e.target.value)}
+                className="col-span-3"
               />
             </div>
-            <div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="apiKey" className="text-right">
+                API Key
+              </Label>
               <Input
                 type="text"
-                placeholder="API Key"
+                id="apiKey"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
+                className="col-span-3"
               />
             </div>
           </div>
-          <Button onClick={() => {
-          }} className={cn("bg-accent text-accent-foreground hover:bg-accent/80")}>
-            OK
-          </Button>
-        </CardContent>
-      </Card>
+          <DialogFooter>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button">OK</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will update the AI configuration. Are you sure you want to
+                    continue?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction>Continue</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="w-full max-w-3xl mt-8 space-y-6">
         {questions.map((question, index) => (
