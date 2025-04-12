@@ -24,20 +24,26 @@ export default function Home() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showAnswers, setShowAnswers] = useState<boolean[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const generateQuestions = async () => {
     if (!inputText) return;
 
     setIsLoading(true);
+    setProgress(0);
 
     try {
       const segmentedText = await segmentText({text: inputText});
       if (!segmentedText?.sentences) return;
 
+      const totalSentences = segmentedText.sentences.length;
       const generatedQuestions: Question[] = [];
-      for (const sentence of segmentedText.sentences) {
+
+      for (let i = 0; i < segmentedText.sentences.length; i++) {
+        const sentence = segmentedText.sentences[i];
         const contextualWordsResult = await identifyContextualWords({sentence: sentence});
         if (!contextualWordsResult?.contextualWords || contextualWordsResult.contextualWords.length === 0) {
+          setProgress((i + 1) / totalSentences * 100);
           continue;
         }
 
@@ -65,11 +71,11 @@ export default function Home() {
             // Find the index of the word in the sentence (word by word)
             let spaceCount = 0;
             let currentWordIndex = 0;
-            for (let i = 0; i < sentence.length; i++) {
-              if (sentence[i] === " ") {
+            for (let j = 0; j < sentence.length; j++) {
+              if (sentence[j] === " ") {
                 spaceCount++;
               }
-              if (sentence[i] === wordToBlank[0] && sentence.substring(i, i + wordToBlank.length) === wordToBlank) {
+              if (sentence[j] === wordToBlank[0] && sentence.substring(j, j + wordToBlank.length) === wordToBlank) {
                 currentWordIndex = spaceCount;
                 break;
               }
@@ -91,11 +97,13 @@ export default function Home() {
           answer: answers,
           blanks: blankIndices
         });
+        setProgress((i + 1) / totalSentences * 100);
       }
       setQuestions(generatedQuestions);
       setShowAnswers(generatedQuestions.map(() => false)); // Initialize showAnswers for new questions
     } finally {
       setIsLoading(false);
+      setProgress(0);
     }
   };
 
@@ -132,7 +140,7 @@ export default function Home() {
             placeholder="Enter your English text here..."
             className="w-full mb-4 bg-input text-foreground"
           />
-          {isLoading && <Progress className="mb-2"/>}
+          {isLoading && <Progress value={progress} className="mb-2"/>}
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={handleNewText} className={cn("bg-secondary text-secondary-foreground hover:bg-secondary/80")}>
               <Icons.trash className="w-4 h-4 mr-2"/>
