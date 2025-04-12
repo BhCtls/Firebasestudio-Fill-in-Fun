@@ -2,7 +2,7 @@
 
 import {useState} from 'react';
 import {segmentText} from "@/ai/flows/segment-text";
-import {identifyContextualWords} from "@/ai/flows/identify-contextual-words";
+import {identifyContextualWords, changeTense} from "@/ai/flows/identify-contextual-words";
 import {Button} from "@/components/ui/button";
 import {Textarea} from "@/components/ui/textarea";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
@@ -60,7 +60,7 @@ export default function Home() {
         });
 
         // Randomly select words to blank out
-        while (blankIndices.length < numBlanks) {
+        for (let j = 0; j < numBlanks; j++) {
           const randomIndex = Math.floor(Math.random() * contextualWordsResult.contextualWords.length);
           const wordToBlank = contextualWordsResult.contextualWords[randomIndex];
 
@@ -71,11 +71,11 @@ export default function Home() {
             // Find the index of the word in the sentence (word by word)
             let spaceCount = 0;
             let currentWordIndex = 0;
-            for (let j = 0; j < sentence.length; j++) {
-              if (sentence[j] === " ") {
+            for (let k = 0; k < sentence.length; k++) {
+              if (sentence[k] === " ") {
                 spaceCount++;
               }
-              if (sentence[j] === wordToBlank[0] && sentence.substring(j, j + wordToBlank.length) === wordToBlank) {
+              if (sentence[k] === wordToBlank[0] && sentence.substring(k, k + wordToBlank.length) === wordToBlank) {
                 currentWordIndex = spaceCount;
                 break;
               }
@@ -85,9 +85,21 @@ export default function Home() {
               blankIndices.push(currentWordIndex);
               answers.push(wordToBlank);
 
+              // Call changeTense to get the other form/tense of the word
+              const changedTenseResult = await changeTense({
+                word: wordToBlank,
+                tense: "past", // You can change the tense here
+                context: sentence
+              });
+
+              let otherFormWord = wordToBlank;
+              if (changedTenseResult?.changedWord) {
+                otherFormWord = changedTenseResult.changedWord;
+              }
+
               // Construct the regex to replace the word with the placeholder
               const regex = new RegExp(`\\b${wordToBlank.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, "g");
-              currentSentence = currentSentence.replace(regex, `${PlaceholderShape} (${wordToBlank})`);
+              currentSentence = currentSentence.replace(regex, `${PlaceholderShape} (${otherFormWord})`);
             }
           }
         }
