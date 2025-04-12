@@ -9,6 +9,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {Input} from "@/components/ui/input";
 import {Icons} from "@/components/icons";
 import {cn} from "@/lib/utils";
+import {Progress} from "@/components/ui/progress";
 
 const PlaceholderShape = "______";
 
@@ -22,73 +23,80 @@ export default function Home() {
   const [inputText, setInputText] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showAnswers, setShowAnswers] = useState<boolean[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const generateQuestions = async () => {
     if (!inputText) return;
 
-    const segmentedText = await segmentText({text: inputText});
-    if (!segmentedText?.sentences) return;
+    setIsLoading(true);
 
-    const generatedQuestions: Question[] = [];
-    for (const sentence of segmentedText.sentences) {
-      const contextualWordsResult = await identifyContextualWords({sentence: sentence});
-      if (!contextualWordsResult?.contextualWords || contextualWordsResult.contextualWords.length === 0) {
-        continue;
-      }
+    try {
+      const segmentedText = await segmentText({text: inputText});
+      if (!segmentedText?.sentences) return;
 
-      // Limit to a maximum of 2 blanks per sentence
-      const numBlanks = Math.min(2, contextualWordsResult.contextualWords.length);
-      const blankIndices: number[] = [];
-      const answers: string[] = [];
-      let currentSentence = sentence;
+      const generatedQuestions: Question[] = [];
+      for (const sentence of segmentedText.sentences) {
+        const contextualWordsResult = await identifyContextualWords({sentence: sentence});
+        if (!contextualWordsResult?.contextualWords || contextualWordsResult.contextualWords.length === 0) {
+          continue;
+        }
 
-      // Create a map of word positions in the sentence
-      const wordPositions = new Map<number, string>();
-      sentence.split(" ").forEach((word, index) => {
-        wordPositions.set(index, word);
-      });
+        // Limit to a maximum of 2 blanks per sentence
+        const numBlanks = Math.min(2, contextualWordsResult.contextualWords.length);
+        const blankIndices: number[] = [];
+        const answers: string[] = [];
+        let currentSentence = sentence;
 
-      // Randomly select words to blank out
-      while (blankIndices.length < numBlanks) {
-        const randomIndex = Math.floor(Math.random() * contextualWordsResult.contextualWords.length);
-        const wordToBlank = contextualWordsResult.contextualWords[randomIndex];
+        // Create a map of word positions in the sentence
+        const wordPositions = new Map<number, string>();
+        sentence.split(" ").forEach((word, index) => {
+          wordPositions.set(index, word);
+        });
 
-        // Find the index of the word in the sentence
-        const wordIndex = sentence.indexOf(wordToBlank);
+        // Randomly select words to blank out
+        while (blankIndices.length < numBlanks) {
+          const randomIndex = Math.floor(Math.random() * contextualWordsResult.contextualWords.length);
+          const wordToBlank = contextualWordsResult.contextualWords[randomIndex];
 
-        if (wordIndex !== -1) {
-          // Find the index of the word in the sentence (word by word)
-          let spaceCount = 0;
-          let currentWordIndex = 0;
-          for (let i = 0; i < sentence.length; i++) {
-            if (sentence[i] === " ") {
-              spaceCount++;
+          // Find the index of the word in the sentence
+          const wordIndex = sentence.indexOf(wordToBlank);
+
+          if (wordIndex !== -1) {
+            // Find the index of the word in the sentence (word by word)
+            let spaceCount = 0;
+            let currentWordIndex = 0;
+            for (let i = 0; i < sentence.length; i++) {
+              if (sentence[i] === " ") {
+                spaceCount++;
+              }
+              if (sentence[i] === wordToBlank[0] && sentence.substring(i, i + wordToBlank.length) === wordToBlank) {
+                currentWordIndex = spaceCount;
+                break;
+              }
             }
-            if (sentence[i] === wordToBlank[0] && sentence.substring(i, i + wordToBlank.length) === wordToBlank) {
-              currentWordIndex = spaceCount;
-              break;
+
+            if (!blankIndices.includes(currentWordIndex)) {
+              blankIndices.push(currentWordIndex);
+              answers.push(wordToBlank);
+
+              // Construct the regex to replace the word with the placeholder
+              const regex = new RegExp(`\\b${wordToBlank.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, "g");
+              currentSentence = currentSentence.replace(regex, `${PlaceholderShape} (${wordToBlank})`);
             }
-          }
-
-          if (!blankIndices.includes(currentWordIndex)) {
-            blankIndices.push(currentWordIndex);
-            answers.push(wordToBlank);
-
-            // Construct the regex to replace the word with the placeholder
-            const regex = new RegExp(`\\b${wordToBlank.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, "g");
-            currentSentence = currentSentence.replace(regex, PlaceholderShape);
           }
         }
-      }
 
-      generatedQuestions.push({
-        sentence: currentSentence,
-        answer: answers,
-        blanks: blankIndices
-      });
+        generatedQuestions.push({
+          sentence: currentSentence,
+          answer: answers,
+          blanks: blankIndices
+        });
+      }
+      setQuestions(generatedQuestions);
+      setShowAnswers(generatedQuestions.map(() => false)); // Initialize showAnswers for new questions
+    } finally {
+      setIsLoading(false);
     }
-    setQuestions(generatedQuestions);
-    setShowAnswers(generatedQuestions.map(() => false)); // Initialize showAnswers for new questions
   };
 
   const toggleAnswerVisibility = (index: number) => {
@@ -124,12 +132,13 @@ export default function Home() {
             placeholder="Enter your English text here..."
             className="w-full mb-4 bg-input text-foreground"
           />
+          {isLoading && <Progress className="mb-2"/>}
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={handleNewText} className={cn("bg-secondary text-secondary-foreground hover:bg-secondary/80")}>
               <Icons.trash className="w-4 h-4 mr-2"/>
               New Text
             </Button>
-            <Button onClick={generateQuestions} className={cn("bg-primary text-primary-foreground hover:bg-primary/80")}>
+            <Button onClick={generateQuestions} disabled={isLoading} className={cn("bg-primary text-primary-foreground hover:bg-primary/80")}>
               Generate Questions
             </Button>
           </div>
