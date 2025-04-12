@@ -1,1 +1,2 @@
-// Flows will be imported for their side effects in this file.
+import '@/ai/flows/identify-contextual-words.ts';
+import '@/ai/flows/segment-text.ts';
