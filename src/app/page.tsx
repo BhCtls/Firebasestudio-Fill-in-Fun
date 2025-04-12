@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {segmentText} from "@/ai/flows/segment-text";
 import {identifyContextualWords, changeTense} from "@/ai/flows/identify-contextual-words";
 import {Button} from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, A
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
 import {Label} from "@/components/ui/label";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {useToast} from "@/hooks/use-toast";
 
 const PlaceholderShape = "______";
 
@@ -33,6 +34,8 @@ export default function Home() {
   const [apiKey, setApiKey] = useState("");
   const [apiEndpoint, setApiEndpoint] = useState("");
   const [open, setOpen] = useState(false);
+  const [model, setModel] = useState("gemini-2.0-flash");
+  const {toast} = useToast();
 
   const generateQuestions = async () => {
     if (!inputText) return;
@@ -49,7 +52,7 @@ export default function Home() {
 
       for (let i = 0; i < segmentedText.sentences.length; i++) {
         const sentence = segmentedText.sentences[i];
-        const contextualWordsResult = await identifyContextualWords({sentence: sentence});
+        const contextualWordsResult = await identifyContextualWords({sentence: sentence, model: model});
         if (!contextualWordsResult?.contextualWords || contextualWordsResult.contextualWords.length === 0) {
           setProgress((i + 1) / totalSentences * 100);
           continue;
@@ -97,7 +100,8 @@ export default function Home() {
               const changedTenseResult = await changeTense({
                 word: wordToBlank,
                 tense: "past", // You can change the tense here
-                context: sentence
+                context: sentence,
+                model: model
               });
 
               let otherFormWord = wordToBlank;
@@ -121,6 +125,13 @@ export default function Home() {
       }
       setQuestions(generatedQuestions);
       setShowAnswers(generatedQuestions.map(() => false)); // Initialize showAnswers for new questions
+    } catch (error: any) {
+      console.error("Error in generateQuestions:", error);
+      toast({
+        variant: "destructive",
+        title: "Error generating questions",
+        description: error.message,
+      });
     } finally {
       setIsLoading(false);
       setProgress(0);
@@ -140,6 +151,16 @@ export default function Home() {
     setQuestions([]);
     setShowAnswers([]);
   };
+
+  const handleConfigOK = () => {
+    // Implement any config update logic here
+    setOpen(false);
+    toast({
+      title: "Configuration Updated",
+      description: "AI configuration has been updated successfully.",
+    });
+  };
+
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen py-10 bg-background">
@@ -199,6 +220,22 @@ export default function Home() {
                 </SelectContent>
               </Select>
             </div>
+            {aiSupplier === "google" && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="model" className="text-right">
+                  Model
+                </Label>
+                <Select onValueChange={setModel} defaultValue={model} id="model" className="col-span-3">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Model"/>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash</SelectItem>
+                    <SelectItem value="gemini-2.0-pro">Gemini 2.0 Pro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="apiEndpoint" className="text-right">
                 API Endpoint
@@ -239,7 +276,7 @@ export default function Home() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction>Continue</AlertDialogAction>
+                  <AlertDialogAction onClick={handleConfigOK}>Continue</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

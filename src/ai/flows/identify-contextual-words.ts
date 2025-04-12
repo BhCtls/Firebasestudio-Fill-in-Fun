@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const IdentifyContextualWordsInputSchema = z.object({
   sentence: z.string().describe('The sentence to analyze.'),
+  model: z.string().describe('The model to use for the analysis.'),
 });
 export type IdentifyContextualWordsInput = z.infer<typeof IdentifyContextualWordsInputSchema>;
 
@@ -32,6 +33,7 @@ const prompt = ai.definePrompt({
   input: {
     schema: z.object({
       sentence: z.string().describe('The sentence to analyze.'),
+      model: z.string().describe('The model to use for the analysis.'),
     }),
   },
   output: {
@@ -46,6 +48,7 @@ Your task is to identify words with high contextual value in a given sentence.
 These words are verbs and adjectives.Avoid Nouns.
 Return a list of these words.
 
+Model: {{{model}}}
 Sentence: {{{sentence}}}
 
 Contextual Words:`,
@@ -55,6 +58,7 @@ const ChangeTenseInputSchema = z.object({
   word: z.string().describe('The word to change tense.'),
   tense: z.string().describe('The target tense for the word.'),
   context: z.string().describe('The context sentence of the word'),
+  model: z.string().describe('The model to use for the analysis.'),
 });
 export type ChangeTenseInput = z.infer<typeof ChangeTenseInputSchema>;
 
@@ -70,6 +74,7 @@ const prompt_changetense = ai.definePrompt({
       word: z.string().describe('The word to change tense.'),
       tense: z.string().describe('The target tense for the word.'),
       context: z.string().describe('The context sentence of the word'),
+      model: z.string().describe('The model to use for the analysis.'),
     }),
   },
   output: {
@@ -82,6 +87,7 @@ Your task is to change the tense(for verb) or form(for adjectives or adverbs) of
 When you get a verb like "to be done",you can output a "do".Also you can convert an adjective such as "collective" to "collect" or "collection".
 Just output the changed tense word, nothing else.
 
+Model: {{{model}}}
 Word: {{{word}}}
 Tense: {{{tense}}}
 Context Sentence: {{{context}}}
