@@ -10,6 +10,7 @@ import {Input} from "@/components/ui/input";
 import {Icons} from "@/components/icons";
 import {cn} from "@/lib/utils";
 import {Progress} from "@/components/ui/progress";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 const PlaceholderShape = "______";
 
@@ -25,6 +26,9 @@ export default function Home() {
   const [showAnswers, setShowAnswers] = useState<boolean[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [aiSupplier, setAiSupplier] = useState("google");
+  const [apiKey, setApiKey] = useState("");
+  const [apiEndpoint, setApiEndpoint] = useState("");
 
   const generateQuestions = async () => {
     if (!inputText) return;
@@ -162,6 +166,50 @@ export default function Home() {
               Generate Questions
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="w-full max-w-3xl p-4 md:p-6 space-y-4 bg-card shadow-md rounded-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold tracking-tight">AI Supplier Configuration</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">
+            Configure the AI supplier and credentials.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Select onValueChange={setAiSupplier} defaultValue={aiSupplier}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select AI Supplier"/>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="google">Google AI</SelectItem>
+                  <SelectItem value="openai">OpenAI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Input
+                type="text"
+                placeholder="API Endpoint"
+                value={apiEndpoint}
+                onChange={(e) => setApiEndpoint(e.target.value)}
+              />
+            </div>
+            <div>
+              <Input
+                type="text"
+                placeholder="API Key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button onClick={() => {
+          }} className={cn("bg-accent text-accent-foreground hover:bg-accent/80")}>
+            OK
+          </Button>
         </CardContent>
       </Card>
 
