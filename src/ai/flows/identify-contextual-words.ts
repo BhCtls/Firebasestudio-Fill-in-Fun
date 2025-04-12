@@ -1,4 +1,5 @@
 'use server';
+
 /**
  * @fileOverview An AI agent that identifies words with high contextual value in a sentence.
  *
@@ -8,7 +9,6 @@
  */
 
 import {ai} from '@/ai/ai-instance';
-import {useToast} from '@/hooks/use-toast';
 import {z} from 'genkit';
 
 const IdentifyContextualWordsInputSchema = z.object({
@@ -17,7 +17,7 @@ const IdentifyContextualWordsInputSchema = z.object({
 export type IdentifyContextualWordsInput = z.infer<typeof IdentifyContextualWordsInputSchema>;
 
 const IdentifyContextualWordsOutputSchema = z.object({
-  contextualWords: z.array(z.string()).describe('The words with high contextual value in the sentence.'),
+  contextualWords: z.array(z.string()).describe('The words with high contextual value in the sentence.')
 });
 export type IdentifyContextualWordsOutput = z.infer<typeof IdentifyContextualWordsOutputSchema>;
 
@@ -60,33 +60,6 @@ const identifyContextualWordsFlow = ai.defineFlow<
   outputSchema: IdentifyContextualWordsOutputSchema,
 },
 async input => {
-    const {toast} = useToast();
-  try {
-    const {output} = await prompt(input);
-    return output!;
-  } catch (error: any) {
-    console.error('Error in identifyContextualWordsFlow:', error);
-
-    // Check if the error is a rate limit error
-    if (error.message.includes('Too Many Requests')) {
-      toast({
-        title: 'Rate Limit Exceeded',
-        description:
-          'You have exceeded the API rate limit. Please try again later.',
-        variant: 'destructive',
-      });
-    } else {
-      // Handle other errors
-      toast({
-        title: 'Error',
-        description: 'Failed to identify contextual words. Please try again.',
-        variant: 'destructive',
-      });
-    }
-
-    // Re-throw the error to prevent further execution
-    throw error;
-  }
+  const {output} = await prompt(input);
+  return output!;
 });
-
-    
