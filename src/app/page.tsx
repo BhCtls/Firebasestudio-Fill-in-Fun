@@ -236,6 +236,22 @@ export default function Home() {
                 </Select>
               </div>
             )}
+            {aiSupplier === "openai" && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="model" className="text-right">
+                  Model
+                </Label>
+                <Select onValueChange={setModel} defaultValue={model} id="model" className="col-span-3">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Model"/>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gpt-3.5-turbo">GPT 3.5 Turbo</SelectItem>
+                    <SelectItem value="gpt-4">GPT 4</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="apiEndpoint" className="text-right">
                 API Endpoint
@@ -317,3 +333,4 @@ export default function Home() {
     </div>
   );
 }
+
